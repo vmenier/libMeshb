@@ -269,7 +269,7 @@ long long GmfOpenMesh(char *FilNam, int mod, ...)
     /* MESH STRUCTURE INIT */
     /*---------------------*/
 
-    if(!(msh = calloc(1, sizeof(GmfMshSct))))
+    if(!(msh = (GmfMshSct*)calloc(1, sizeof(GmfMshSct))))
         return(0);
 
     MshIdx = (long long)msh;
@@ -298,9 +298,9 @@ long long GmfOpenMesh(char *FilNam, int mod, ...)
     /* Store the opening mod (read or write) and guess the filetype (binary or ascii) depending on the extension */
 
     msh->mod = mod;
-    msh->buf = (void *)msh->DblBuf;
-    msh->FltBuf = (void *)msh->DblBuf;
-    msh->IntBuf = (void *)msh->DblBuf;
+    msh->buf = (char* )msh->DblBuf;
+    msh->FltBuf = (float *)msh->DblBuf;
+    msh->IntBuf = (int *)msh->DblBuf;
 
     if(strstr(msh->FilNam, ".meshb"))
         msh->typ |= (Bin | MshFil);
@@ -844,13 +844,13 @@ extern int NAMF77(GmfSetLin, gmfsetlin)(TYPF77(long long) MshIdx, TYPF77(int) Kw
                 {
                     if(msh->ver <= 1)
                     {
-                        FltBuf = (void *)&msh->buf[ pos ];
+                        FltBuf = (float *)&msh->buf[ pos ];
                         *FltBuf = (float) VALF77(va_arg(VarArg, TYPF77(double)));
                         pos += 4;
                     }
                     else
                     {
-                        DblBuf = (void *)&msh->buf[ pos ];
+                        DblBuf = (double *)&msh->buf[ pos ];
                         *DblBuf = VALF77(va_arg(VarArg, TYPF77(double)));
                         pos += 8;
                     }
@@ -859,13 +859,13 @@ extern int NAMF77(GmfSetLin, gmfsetlin)(TYPF77(long long) MshIdx, TYPF77(int) Kw
                 {
                     if(msh->ver <= 3)
                     {
-                        IntBuf = (void *)&msh->buf[ pos ];
+                        IntBuf = (int *)&msh->buf[ pos ];
                         *IntBuf = VALF77(va_arg(VarArg, TYPF77(int)));
                         pos += 4;
                     }
                     else
                     {
-                        LngBuf = (void *)&msh->buf[ pos ];
+                        LngBuf = (long int *)&msh->buf[ pos ];
                         *LngBuf = VALF77(va_arg(VarArg, TYPF77(long)));
                         pos += 8;
                     }
@@ -1037,7 +1037,7 @@ int GmfCpyLin(int InpIdx, int OutIdx, int KwdCod)
 extern int NAMF77(GmfGetBlock, gmfgetblock)(TYPF77(long long) MshIdx, TYPF77(int) KwdCod, void *prc, ...)
 {
     char *UsrDat[ GmfMaxTyp ], *FilBuf=NULL, *FrtBuf=NULL, *BckBuf=NULL, *FilPos, **SolTab1, **SolTab2;
-    char *StrTab[5] = { "", "%f", "%lf", "%d", "%lld" };
+    char *StrTab[5] = { (char*)"", (char*)"%f", (char*)"%lf", (char*)"%d", (char*)"%lld" };
     int b, i, j, LinSiz, *FilPtrI32, *UsrPtrI32, FilTyp[ GmfMaxTyp ], UsrTyp[ GmfMaxTyp ];
     int NmbBlk, NmbArg, SizTab[5] = {0,4,8,4,8}, err, ret, typ, SolTabTyp = 0;
     long long NmbLin, *FilPtrI64, *UsrPtrI64, BegIdx, EndIdx=0;
@@ -1173,10 +1173,10 @@ extern int NAMF77(GmfGetBlock, gmfgetblock)(TYPF77(long long) MshIdx, TYPF77(int
     else
     {
         /* Allocate both front and back buffers */
-        if(!(BckBuf = malloc((size_t)BufSiz * (size_t)LinSiz)))
+        if(!(BckBuf = (char*)malloc((size_t)BufSiz * (size_t)LinSiz)))
             return(0);
 
-        if(!(FrtBuf = malloc((size_t)BufSiz * (size_t)LinSiz)))
+        if(!(FrtBuf = (char*)malloc((size_t)BufSiz * (size_t)LinSiz)))
             return(0);
 
         /* Setup the ansynchonous parameters */
@@ -1359,7 +1359,7 @@ extern int NAMF77(GmfGetBlock, gmfgetblock)(TYPF77(long long) MshIdx, TYPF77(int
 extern int NAMF77(GmfSetBlock, gmfsetblock)(TYPF77(long long) MshIdx, TYPF77(int) KwdCod, void *prc, ...)
 {
     char *UsrDat[ GmfMaxTyp ], *FilBuf=NULL, *FrtBuf=NULL, *BckBuf=NULL, *FilPos;
-    char *StrTab[5] = { "", "%g", "%.15g", "%d", "%lld" };
+    char *StrTab[5] = { (char*)"", (char*)"%g", (char*)"%.15g", (char*)"%d", (char*)"%lld" };
     int i, j, LinSiz, *FilPtrI32, *UsrPtrI32, FilTyp[ GmfMaxTyp ], UsrTyp[ GmfMaxTyp ];
     int NmbBlk, NmbArg, NmbLin, b, SizTab[5] = {0,4,8,4,8}, err, ret;
     long long *FilPtrI64, *UsrPtrI64, BegIdx, EndIdx=0;
@@ -1480,10 +1480,10 @@ extern int NAMF77(GmfSetBlock, gmfsetblock)(TYPF77(long long) MshIdx, TYPF77(int
     else
     {
         /* Allocate the front and back buffers */
-        if(!(BckBuf = malloc((size_t)BufSiz * (size_t)LinSiz)))
+        if(!(BckBuf = (char*)malloc((size_t)BufSiz * (size_t)LinSiz)))
             return(0);
 
-        if(!(FrtBuf = malloc((size_t)BufSiz * (size_t)LinSiz)))
+        if(!(FrtBuf = (char*)malloc((size_t)BufSiz * (size_t)LinSiz)))
             return(0);
 
         /* Setup the asynchronous parameters */
